@@ -1,0 +1,4 @@
+sasf_ajaxpreview_preview:
+    path: /ajaxpreview
+    defaults: { _controller: sasf.ajaxpreview.controller.preview:handle }
+    methods: [POST] 

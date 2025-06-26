@@ -1,0 +1,169 @@
+<!-- Панель предпросмотра -->
+<div class="panel" id="ajax_preview_panel" style="display: none; margin-top: 10px;">
+    <div class="inner">
+        <h3 style="cursor: pointer; margin: 0; padding: 8px 12px; background: #E2E6E9; border-bottom: 1px solid #CCC;">Предпросмотр сообщения</h3>
+        <div id="ajax_preview_content" style="padding: 15px; min-height: 50px;"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+function waitForJQuery() {
+    if (typeof jQuery !== 'undefined') {
+        initAjaxPreview();
+    } else {
+        setTimeout(waitForJQuery, 100);
+    }
+}
+
+function initAjaxPreview() {
+    jQuery(document).ready(function($) {
+        var $fullEditorBtn = $('#qr_full_editor');
+        
+        if ($fullEditorBtn.length) {
+            $fullEditorBtn.attr('type', 'button');
+            $fullEditorBtn.val('Предпросмотр');
+            $fullEditorBtn.attr('id', 'ajax_preview_btn');
+            $fullEditorBtn.removeClass('alternate-submit-action');
+            $fullEditorBtn.removeAttr('name');
+            
+            $fullEditorBtn.off('click').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var $button = $(this);
+                var $content = $('#ajax_preview_content');
+                var $panel = $('#ajax_preview_panel');
+                
+                var message = $('#message').val();
+                var forumId = $('input[name="f"]').val() || getUrlParameter('f');
+                
+                if (!message.trim()) {
+                    alert('Введите текст сообщения для предпросмотра');
+                    return false;
+                }
+                
+                $button.prop('disabled', true).val('Загрузка...');
+                $content.html('<div style="text-align: center; padding: 20px; color: #666;">Загрузка...</div>');
+                $panel.slideDown();
+                
+                $.ajax({
+                    url: 'app.php/ajaxpreview',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        message: message,
+                        f: forumId
+                    },
+                    success: function(response) {
+                        if (response.error) {
+                            $content.html('<div style="color: #BC2A4D; font-weight: bold;">' + response.error + '</div>');
+                        } else {
+                            $content.html(response.preview || '<em>Предпросмотр недоступен</em>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $content.html('<div style="color: #BC2A4D; font-weight: bold;">Ошибка при загрузке предпросмотра</div>');
+                    },
+                    complete: function() {
+                        $button.prop('disabled', false).val('Предпросмотр');
+                    }
+                });
+                
+                return false;
+            });
+        } else {
+            var $previewBtn = $('<input type="button" accesskey="p" value="Предпросмотр" class="button1" id="ajax_preview_btn" style="margin-right: 5px;" />');
+            $('.submit-buttons').first().prepend($previewBtn);
+            
+            $previewBtn.click(function() {
+                var $button = $(this);
+                var $content = $('#ajax_preview_content');
+                var $panel = $('#ajax_preview_panel');
+                
+                var message = $('#message').val();
+                var forumId = $('input[name="f"]').val() || getUrlParameter('f');
+                
+                if (!message.trim()) {
+                    alert('Введите текст сообщения для предпросмотра');
+                    return;
+                }
+                
+                $button.prop('disabled', true).val('Загрузка...');
+                $content.html('<div style="text-align: center; padding: 20px; color: #666;">Загрузка...</div>');
+                $panel.slideDown();
+                
+                $.ajax({
+                    url: 'app.php/ajaxpreview',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        message: message,
+                        f: forumId
+                    },
+                    success: function(response) {
+                        if (response.error) {
+                            $content.html('<div style="color: #BC2A4D; font-weight: bold;">' + response.error + '</div>');
+                        } else {
+                            $content.html(response.preview || '<em>Предпросмотр недоступен</em>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $content.html('<div style="color: #BC2A4D; font-weight: bold;">Ошибка при загрузке предпросмотра</div>');
+                    },
+                    complete: function() {
+                        $button.prop('disabled', false).val('Предпросмотр');
+                    }
+                });
+            });
+        }
+        
+        $(document).on('click', '#ajax_preview_panel h3', function() {
+            $('#ajax_preview_panel').slideUp();
+        });
+        
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+    });
+}
+
+waitForJQuery();
+</script>
+
+<style type="text/css">
+#ajax_preview_panel {
+    border: 1px solid #D4D4D4;
+    border-radius: 5px;
+    background: #FAFAFA;
+}
+
+#ajax_preview_panel h3 {
+    font-size: 13px;
+    font-weight: bold;
+    color: #383838;
+    border-radius: 4px 4px 0 0;
+}
+
+#ajax_preview_panel h3:hover {
+    background: #D8DDE2 !important;
+}
+
+#ajax_preview_btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#ajax_preview_content {
+    max-width: 816px;
+    line-height: 1.4em;
+    font-size: 1.3em;
+    font-family: "Lucida Grande", "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
+}
+
+#ajax_preview_content img {
+    max-width: 100%;
+}
+</style> 
